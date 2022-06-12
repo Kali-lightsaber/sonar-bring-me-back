@@ -48,7 +48,10 @@ pushd /tmp/gitrepo
 
 git clean -df
 
-for hash in `git --no-pager log --reverse --pretty=format:%h`
+CURRENT_BRANCH=`git branch --show-current`
+FIRST_HASH_OF_BRANCH=`git rev-list -1 --before="$START_DATE" $CURRENT_BRANCH`
+
+for hash in `git --no-pager log --reverse --after="$START_DATE" --pretty=format:%h $CURRENT_BRANCH`
 do
     #T03:00:00+0300
     HASH_DATE=`git show $hash --date=iso | grep Date: -m1 | cut -d' ' -f 4`
@@ -63,9 +66,10 @@ do
       continue
     fi
     
-    TIMESTAMP=`grep sonar.projectVersion /tmp/sonar-project.properties | cut -d'=' -f 2`
-
-    echo "Checking out source $HASH_DATE with as $hash on $TIMESTAMP-$HASH_TIME"
+    LATEST_BRANCH_TAG=`git describe --tags --abbrev=0`
+    PROJECT_VERSION=`grep sonar.projectVersion /tmp/sonar-project.properties | cut -d'=' -f 2`
+    PROPOSED_VERSION="$HASH_DATE-$LATEST_BRANCH_TAG-$PROJECT_VERSION"
+    echo "Checking out source $HASH_DATE with as $hash on $PROPOSED_VERSION"
 
     git reset --hard $hash > /dev/null 2>&1
 
@@ -80,13 +84,13 @@ do
     STATUS=`git show --oneline -s`
     echo $STATUS
 
-    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600000 -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$TIMESTAM-$HASH_TIME"
+    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600 -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$PROPOSED_VERSION"
 
     #echo "Executing Maven: $MVN_COMMAND"
     #$MVN_COMMAND > /dev/null 2>&1
     #echo "Executing Sonar: $SONAR_PROJECT_COMMAND"
     #$SONAR_PROJECT_COMMAND || exit 42 #> /dev/null 2>&1
-    $SONAR_PROJECT_COMMAND #> /dev/null 2>&1
+    #$SONAR_PROJECT_COMMAND #> /dev/null 2>&1
 done
 
 git reset --hard $hash > /dev/null 2>&1

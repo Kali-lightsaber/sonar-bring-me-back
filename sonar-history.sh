@@ -1,3 +1,5 @@
+#!/bin/bash
+
 CURDIR=$1
 
 # in Windows there sh.exe does not provide correct path for docker

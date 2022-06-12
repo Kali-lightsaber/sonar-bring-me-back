@@ -1,67 +1,62 @@
 ## Analyze history of git repo with SonarQube 
 
-simply run:
+**if you start use SonarQube for your git repo yo may want to load your tech debt from first commit to current date**
 
-* install docker https://docs.docker.com/get-docker/
-* build image `docker build -t local-sonar-history-runner .`
-* create dirs for you old repos `mkdir ./gitrepos`
-* clone the your repo in some place - prefered `git clone git@some.git ./gitrepos/<ouroldrepo>`
-* create file `.env` in your repo with this content
+> install docker https://docs.docker.com/get-docker/ and `make+git+bash` on each platform Linux or Windows
+
+## Run Workflow
+
+* run `make prepare` - it create directory `./gitrepos/` for repos you want to scan
+* run `make build` - it build sonar-scanner image with sh script for commit hash switch
+* clone your repo `git clone <git@some.url/somename> ./gitrepos/<somename>`
+* create env file based on example `cp ./.env.example ./.env`
 ```
-SONAR_SCANNER_OPTS=-Xmx512m (or some additional scanner opts)
-SONAR_SERVER_URL=<your-sonarserver-url>
-SONAR_TOKEN=<yourapitoken>
-START_DATE=0001-01-01
-DATE_DIFF=+1 month
+SONAR_SCANNER_OPTS=-Xmx512m             # https://docs.sonarqube.org/latest/analysis/scan/sonarscanner/
+SONAR_SERVER_URL=http://localhost:9000  # <your-sonarserver-url>
+SONAR_TOKEN=                            # <yourapitoken>
+START_DATE=0001-01-01                   # start date for history import
+DATE_DIFF_STEP="+1 month"               # step between history walker
 ```
-* checkout branch from `origin/some-branch`
-  * dont forget fill `sonar-project.properties` in your project
-* run command specified on your OS
+* edit env file (you must add sonar host url, starting date for history and sonar-apitoken) and if you wish - you may skip history per week, per month
+* run `make run` - it start analize your history of each repo in `./gitrepos/*`
 
-### Linux
+### Behavior
 
-```
-docker run -it --rm --env-file=.env -v "$PWD/gitrepos/<ouroldrepo>":/gitrepo local-sonar-history-runner
-```
+* we build [Docker image](./Dockerfile) with latest sonar-scanner standalone cli 
+* entrypoint of an image is a [bash script](./src/history-analyze.sh) which walk throuth commits and start analyze source code
+* it switch each `commit-hash` on current cloned `branch`
+* then it start sonar-scan with some behavior
+  * parse `sonar-project.properties` to find `$PROJECTVERSION`
+  * and create version template `-Dsonar.project.version=$DATE-$TAG-$PROJECTVERSION`
+* then analize `commit-hash` with `-Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600`
 
-### Windows
 
-create `bat` file with this content
+## Trobleshoting and Debug
 
+if you want debug run you must run docker command (dont forgent run `make prepera && make build` before it)
+
+* **Linux** `docker run -it --rm --env-file=.env -v "$PWD/gitrepos/<ouroldrepo>":/gitrepo local-sonar-history-runner`
+* **Windows** create `bat` file with this content
 ```
 set CURPWD=%cd%
 set CURPWD=%CURPWD:\=/%
 
-docker run -it --rm --env-file=.env -v "%CURPWD%":/gitrepos/<ouroldrepo> local-sonar-history-runner
+docker run -it --rm --env-file=.env -v "%CURPWD%gitrepos/<ouroldrepo>":/gitrepo local-sonar-history-runner
 ```
-
 and run it
 
-> note: on docker for windows there is strange behavior with mount localdrive with PWD command, thants why run command so strange
+> note: on docker for windows there is strange behavior with mount localdrive with PWD command, thats why run command so strange
 
-### Debug run
+## Debug run for latest version
 
-* enter to container bash `docker run -it --rm --env-file=.env -v "%CURPWD%":/gitrepos/<ouroldrepo> local-sonar-history-runner bash`
+* run `make prepera && make build`
+* enter to container bash `docker run -it --rm --env-file=.env -v "$PWD/gitrepos/<ouroldrepo>":/gitrepo local-sonar-history-runner bash`
 * run `sonar-runner` command
 
-### For what
-
-* if you start use SonarQube for your git repo yo may want to load your tech debt from first commit to current date
-
-### How to
-
-for that we need to do some steps
-
-* get the git history
-* checkout each revision
-* analyze it with sonar-runner with changed project date
-* push analyze to sonar server
-
-### Tech info
+## Tech info
 
 * we use an docker image with jdk11, maven and nodejs with sonar-scanner installation
 * we use additional parameter `-Dsonar.projectDate=` to bring you in history
-
 
 ## Useful link
 
@@ -69,7 +64,7 @@ for that we need to do some steps
 * official docs for scanner https://docs.sonarqube.org/display/SCAN/Analyzing+with+SonarQube+Scanner
 * advanced usage of sonar scaner https://docs.sonarqube.org/display/SCAN/Advanced+SonarQube+Scanner+Usages
 
-## Limitation
+### Limitation
 
 if you have many revision in one day - you may see analyze error on sonarqube with this content
 

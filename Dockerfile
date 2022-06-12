@@ -32,6 +32,7 @@ WORKDIR /gitrepo
 ENV SONAR_SCANNER_OPTS -Xmx512m 
 ENV SONAR_SERVER_URL http://localhost:9000
 ENV SONAR_TOKEN ""
+ENV START_DATE 0001-01-01
 ENV DATE_DIFF_STEP "+1 month"
 
 CMD /opt/history-analyze.sh
