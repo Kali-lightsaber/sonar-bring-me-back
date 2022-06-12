@@ -1,16 +1,16 @@
-FROM maven:3-jdk-8-alpine
+FROM timbru31/alpine-java-maven:latest
 
-ENV SONAR_SCANNER_VERSION 3.0.3.778
+ENV SONAR_SCANNER_VERSION 4.7.0.2747
 
 RUN apk add dos2unix --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 
 RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh
+    apk add --no-cache bash git openssh nodejs npm
 
-# https://sonarsource.bintray.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-VERFULL.zip
+# https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-VERFULL-linux.zip
 RUN apk add --no-cache wget && \
 	mkdir -p -m 777 /sonar-scanner && \
-	wget https://sonarsource.bintray.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION.zip -O /sonar-scanner/sonar-scanner.zip && \
+	wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-$SONAR_SCANNER_VERSION.zip -O /sonar-scanner/sonar-scanner.zip && \
 	cd /sonar-scanner && \
 	unzip -q sonar-scanner.zip && \
 	rm sonar-scanner.zip
@@ -32,5 +32,6 @@ WORKDIR /gitrepo
 ENV SONAR_SCANNER_OPTS -Xmx512m 
 ENV SONAR_SERVER_URL http://localhost:9000
 ENV SONAR_TOKEN ""
+ENV DATE_DIFF_STEP "+1 month"
 
 CMD /opt/history-analyze.sh

@@ -29,7 +29,9 @@ else
    AUTH="-Dsonar.login=$SONAR_TOKEN"
 fi 
 
-if git rev-parse --git-dir > /dev/null 2>&1; then
+git config --global --add safe.directory /gitrepo
+git config --global --add safe.directory /tmp/gitrepo
+if git rev-parse --is-inside-work-tree; then
   echo "starting checkout history of git repo"
 else
   echo "you didnot provide correct git repo"
@@ -61,9 +63,9 @@ do
       continue
     fi
     
-    TIMESTAM=`grep sonar.projectVersion /tmp/sonar-project.properties | cut -d'=' -f 2`
+    TIMESTAMP=`grep sonar.projectVersion /tmp/sonar-project.properties | cut -d'=' -f 2`
 
-    echo "Checking out source $HASH_DATE with as $hash on $TIMESTAM-$HASH_TIME"
+    echo "Checking out source $HASH_DATE with as $hash on $TIMESTAMP-$HASH_TIME"
 
     git reset --hard $hash > /dev/null 2>&1
 
@@ -78,7 +80,7 @@ do
     STATUS=`git show --oneline -s`
     echo $STATUS
 
-    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$TIMESTAM-$HASH_TIME"
+    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600000 -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$TIMESTAM-$HASH_TIME"
 
     #echo "Executing Maven: $MVN_COMMAND"
     #$MVN_COMMAND > /dev/null 2>&1

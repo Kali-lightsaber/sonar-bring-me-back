@@ -6,4 +6,4 @@ if [ -z "$1" ]; then
 fi
 
 docker run -it --env-file=.env --rm -v "$CURDIR":/gitrepo \
-    silverbulleters/sonar-history-runner 
+    local-sonar-history-runner
