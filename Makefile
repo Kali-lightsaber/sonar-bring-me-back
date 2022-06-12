@@ -5,4 +5,4 @@ build:
 	docker build --no-cache -t local-sonar-history-runner .
 
 run:
-	sh ./full-scan-repos.sh
+	bash ./full-scan-repos.sh

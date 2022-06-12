@@ -5,7 +5,7 @@ ENV SONAR_SCANNER_VERSION 4.7.0.2747
 RUN apk add dos2unix --no-cache --repository http://dl-3.alpinelinux.org/alpine/edge/testing/ --allow-untrusted
 
 RUN apk update && apk upgrade && \
-    apk add --no-cache bash git openssh nodejs npm
+    apk add --no-cache coreutils bash git openssh nodejs npm
 
 # https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-VERFULL-linux.zip
 RUN apk add --no-cache wget && \
@@ -33,6 +33,6 @@ ENV SONAR_SCANNER_OPTS -Xmx512m
 ENV SONAR_SERVER_URL http://localhost:9000
 ENV SONAR_TOKEN ""
 ENV START_DATE 0001-01-01
-ENV DATE_DIFF_STEP "+1 month"
+ENV DATE_DIFF_STEP "per-sprint"
 
 CMD /opt/history-analyze.sh

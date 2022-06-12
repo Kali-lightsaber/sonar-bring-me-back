@@ -15,7 +15,9 @@ SONAR_SCANNER_OPTS=-Xmx512m             # https://docs.sonarqube.org/latest/anal
 SONAR_SERVER_URL=http://localhost:9000  # <your-sonarserver-url>
 SONAR_TOKEN=                            # <yourapitoken>
 START_DATE=0001-01-01                   # start date for history import
-DATE_DIFF_STEP="+1 month"               # step between history walker
+
+#(per-year|per-half-year|per-quarter|per-month|per-sprint|per-week|per-day)
+DATE_DIFF_STEP="per-day"                # step between history walker
 ```
 * edit env file (you must add sonar host url, starting date for history and sonar-apitoken) and if you wish - you may skip history per week, per month
 * run `make run` - it start analize your history of each repo in `./gitrepos/*`
@@ -29,7 +31,7 @@ DATE_DIFF_STEP="+1 month"               # step between history walker
   * parse `sonar-project.properties` to find `$PROJECTVERSION`
   * and create version template `-Dsonar.project.version=$DATE-$TAG-$PROJECTVERSION`
 * then analize `commit-hash` with `-Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600`
-
+* and then find next date of commit by the rule `NEXT_DATE=date '+%C%y%m%d' -d "+X yeer/month/etc"` (please see the **DATE_DIFF_STEP** param)
 
 ## Trobleshoting and Debug
 
@@ -90,3 +92,4 @@ this is not bug, this is a limitation of sonar.projectDate parameter - you may s
 * Вы только недавно прочитали статью про SonarQube
 * Вы решили ввести остатки своего технического долга
 
+[Проект реанимирован и развивается только благодаря подписчикам](https://boosty.to/ineedlustin)
