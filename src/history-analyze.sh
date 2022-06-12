@@ -102,12 +102,12 @@ do
 
     SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600 -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$PROPOSED_VERSION"
 
-    #$SONAR_PROJECT_COMMAND #> /dev/null 2>&1
+    $SONAR_PROJECT_COMMAND #> /dev/null 2>&1
 done
 
 git reset --hard $hash > /dev/null 2>&1
 SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$TIMESTAM-$HASH_TIME"
 echo "last hash $hash analyze"
-#$SONAR_PROJECT_COMMAND
+$SONAR_PROJECT_COMMAND
 
 popd
