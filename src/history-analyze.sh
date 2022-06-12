@@ -71,6 +71,12 @@ do
     HASH_DATE=`git show $hash --date=iso | grep Date: -m1 | cut -d' ' -f 4`
     HASH_TIME=`git show $hash --date=iso | grep Date: -m1 | cut -d' ' -f 5`
 
+    # TODO FIXME - we need more simple tag find
+    #LATEST_BRANCH_TAG=`git name-rev --tags --name-only 6f8baf92e | sed 's/~.*//'`
+    #REMOVE_TAG_PREFFIX=""
+    #PREPARED_TAG=`echo "${LATEST_BRANCH_TAG/release\//"$REMOVE_TAG_PREFFIX"}" `
+    PREPARED_TAG="HIST"
+    
     if [[ "$HASH_DATE" > "$LASTDATE" ]] ;
     then
       echo "New commit in new date $HASH_DATE"
@@ -80,16 +86,15 @@ do
       echo "Next analyze date $LASTDATE (switch next analyze date by step $DIFF_STEP =$DATE_DIFF=)"
     elif [[ "$HASH_DATE" == "$LASTDATE" ]] ;
     then
-      echo "Hash $hash skiped $HASH_DATE because it similar on $LASTDATE"
+      echo "Hash $hash ($PREPARED_TAG) skiped $HASH_DATE because it similar on $LASTDATE"
       continue
     else
-      echo "Hash $hash skiped because of diff step"
+      #echo "$HASH_DATE - hash $hash ($PREPARED_TAG) skiped because of diff step"
       continue
     fi
-    
-    LATEST_BRANCH_TAG=`git describe --tags --abbrev=0`
+        
     PROJECT_VERSION=`grep sonar.projectVersion /tmp/sonar-project.properties | cut -d'=' -f 2`
-    PROPOSED_VERSION="$HASH_DATE-$LATEST_BRANCH_TAG-$PROJECT_VERSION"
+    PROPOSED_VERSION="$HASH_DATE-$PREPARED_TAG-$PROJECT_VERSION"
     echo "Checking out source $HASH_DATE with as $hash on $PROPOSED_VERSION"
 
     git reset --hard $hash > /dev/null 2>&1
@@ -100,7 +105,7 @@ do
     STATUS=`git show --oneline -s`
     echo $STATUS
 
-    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.qualitygate.wait=true -Dsonar.qualitygate.timeout=600 -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$PROPOSED_VERSION"
+    SONAR_PROJECT_COMMAND="$SONAR_COMMAND -Dsonar.projectDate=$HASH_DATE -Dsonar.host.url=$SONAR_SERVER_URL $AUTH -Dsonar.projectVersion=$PROPOSED_VERSION"
 
     $SONAR_PROJECT_COMMAND #> /dev/null 2>&1
 done
